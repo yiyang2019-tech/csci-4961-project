@@ -14,7 +14,8 @@ class DataReader:
     def __init__(self,batch_size,hw_root,img_size=(64,64)):
         self.hw_root=hw_root
         self.batch_size=batch_size
-        self.label_tf=self.read_labels
+        self.size=0;
+        self.label_tf=self.read_labels()
         self.img_size=img_size
     def read_labels(self):
         label_list=list()
@@ -29,7 +30,7 @@ class DataReader:
         label_list_tf=tf.convert_to_tensor(label_list,dtype=tf.string)
         [label_tf]=tf.train.slice_input_producer([label_list_tf])
         return label_tf
-    def __len__(self):
+    def len(self):
         return self.size
     def get_img_and_label(self):
         kvs = tf.string_split([self.label_tf],delimiter=' ')
@@ -55,8 +56,8 @@ class DataReader:
         img_tf,label_tf=self.get_img_and_label()
         img_tf=tf.cast(img_tf,tf.float32)
         label_tf=tf.one_hot(label_tf,self.n_classes)
-        img_batch,label_batch = tf.train.shuffle_batch_join([[img_tf,label_tf]],
-                                                            capacity=1000,min_after_dequeue=10)
+        img_batch,label_batch = tf.train.shuffle_batch_join([[img_tf,label_tf]],batch_size=self.batch_size,
+                                                            capacity=100,min_after_dequeue=0,allow_smaller_final_batch=True)
         return img_batch, label_batch
 
         
